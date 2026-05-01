@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Servidor de Terreno - Estudio Pablo VC</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+    color: #fff; padding: 20px;
+  }
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 32px 28px;
+    max-width: 420px; width: 100%;
+    text-align: center;
+    backdrop-filter: blur(8px);
+  }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .sub { font-size: 13px; opacity: 0.7; margin-bottom: 24px; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top-color: #fff;
+    border-radius: 50%;
+    margin: 18px auto;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #status { font-size: 14px; opacity: 0.85; min-height: 22px; margin-top: 12px; }
+  .err { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444;
+    color: #fecaca; padding: 12px 16px; border-radius: 10px; font-size: 13px;
+    margin-top: 18px; text-align: left; line-height: 1.5; }
+  .ok-btn { display: inline-block; margin-top: 14px; padding: 12px 22px;
+    background: #16a34a; color: #fff; border-radius: 8px; text-decoration: none;
+    font-weight: 600; font-size: 14px; }
+  .foot { margin-top: 22px; opacity: 0.5; font-size: 11px; }
+  .url { background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px;
+    font-family: Consolas, monospace; font-size: 12px; word-break: break-all;
+    margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Servidor de Terreno</h1>
+  <div class="sub">Estudio Pablo VC</div>
+  <div class="spinner"></div>
+  <div id="status">Buscando direccion del servidor...</div>
+  <div id="error-box" style="display:none"></div>
+  <div class="foot">Si llegaste aqui es porque tu equipo te compartio este link.</div>
+</div>
+
+<script>
+// Configuracion: Gist ID que contiene la URL viva del servidor
+// (lo edita Pablo en su PC con INICIAR.bat)
+var GIST_RAW_URL = 'https://gist.github.com/pablovcarquitectura-stack/6d3433501352ec302bd70631d270122e';
+
+function showError(msg, detail) {
+  document.querySelector('.spinner').style.display = 'none';
+  document.getElementById('status').textContent = msg;
+  if (detail) {
+    var box = document.getElementById('error-box');
+    box.className = 'err';
+    box.style.display = 'block';
+    box.innerHTML = detail;
+  }
+}
+
+function go() {
+  // Cache-buster para evitar respuesta cacheada
+  var url = GIST_RAW_URL + '?t=' + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
+    .then(function(txt) {
+      var target = (txt || '').trim();
+      if (!target.startsWith('http')) {
+        showError('Servidor no disponible',
+          'El servidor del estudio no esta activo en este momento. ' +
+          'Pidele a Pablo que arranque el servidor (INICIAR.bat) y vuelve a recargar esta pagina.');
+        return;
+      }
+      document.getElementById('status').innerHTML =
+        'Conectando a:<div class="url">' + target + '</div>';
+      setTimeout(function() { window.location.href = target; }, 800);
+    })
+    .catch(function(e) {
+      showError('Error al consultar la direccion',
+        'Detalle tecnico: ' + e.message + '<br><br>' +
+        'Verifica tu conexion a internet o avisa a Pablo.');
+    });
+}
+
+go();
+</script>
+</body>
+</html>
